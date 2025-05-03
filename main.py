@@ -4,7 +4,8 @@ import threading
 import uuid
 
 from fastapi import FastAPI, Depends, HTTPException, Response, status
-from sqlalchemy import text
+from sqlalchemy import text, MetaData
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
@@ -39,10 +40,14 @@ def get_db():
 def create_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = Depends(get_db)):
     try:
         print("Request: " + str(subscriptiondto))
-        db_subscription = Subscription(id=str(uuid.uuid4()),name = subscriptiondto.name)
-        subscriptions[db_subscription.id] = db_subscription
-        print(subscriptions)
-        return {"subscription_id": db_subscription.id, "name": db_subscription.name}
+        sub = create_sub_entity_from_dto(subscriptiondto)
+        db.add(sub)
+        db.commit()
+        print(sub)
+        return SubscriptionCreateDto.from_orm(sub)
+    except IntegrityError as e:
+        print('Duplicate Data Found: ' + str(e))
+        raise HTTPException(status_code=400, detail="Same Detail ALready Exists")
     except BaseException as e:
         print(e)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -90,6 +95,10 @@ def send_message(msg: str):
 
 @app.on_event("startup")
 def on_startup():
+    ## validate existing database schema
+    metadata = MetaData()
+    metadata.reflect(bind=engine)
+
     ## create tables
     print("Creating database tables if does not exists")
     Base.metadata.create_all(bind=engine)
@@ -106,10 +115,10 @@ def create_sub_entity_from_dto(sub_dto: SubscriptionCreateDto):
         tier = sub_dto.tier,
         email = sub_dto.email,
         description = sub_dto.description,
-        sub_metadata = sub_dto.metadata,
+        sub_metadata = None,
         is_active = True,
         created_at = now,
-        expires_at = now + text("INTERVAL 1 MMONTH")
+        expires_at = now + text("INTERVAL 1 MONTH")
     )
 
 
