@@ -8,7 +8,7 @@ from database.database import SessionLocal
 import uuid
 import logging
 from kafka_config.Config import producer
-from concurrent.futures import ThreadPoolExecutor
+from entities.InMemorySubscription import subscriptions
 import asyncio
 
 
@@ -30,7 +30,6 @@ def get_db():
     finally:
         db.close()
 
-subscriptions = {}
 
 @app.post("/subscription")
 def create_subscription(subscriptiondto: SubscriptionDto, db: Session = Depends(get_db)):
