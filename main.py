@@ -78,8 +78,12 @@ async def async_send_message(payload: str):
     await loop.run_in_executor(None, send_message, payload)
 
 def send_message(msg: str):
-    producer.send('webhook_payload', str.encode('UTF-8'))
-    producer.flush()
+    try:
+        producer.send('webhook_payload', msg.encode('UTF-8'))
+        producer.flush()
+        logger.info("Kafka Message Produced: ", )
+    except Exception as e:
+        logger.info("Exception Occurred while producing: ", e)
 
 
 
