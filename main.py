@@ -10,12 +10,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 
 from WebhookDto import WebhookDto
-from database.database import SessionLocal, Base, engine
-from entities.InMemorySubscription import subscriptions
+from database.database import Base, engine
+from database.database import get_db
 from entities.Subscription import Subscription
 from kafka_config.Config import producer
+from kafka_config.Consumer import consume_messages
 from models.SubscriptionCreateDto import SubscriptionCreateDto
-from kafka_config.Config import consume_messages
 
 logging.basicConfig(
     level=logging.INFO,  # Use INFO or WARNING in production
@@ -26,14 +26,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Dependency to get the database session
-def get_db():
-    print("Inside get_db()")
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 
 @app.post("/subscription")
@@ -53,22 +46,25 @@ def create_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = De
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/subscription/{id}")
-def get_subscription(id: str):
-    try:
-        return subscriptions[id]
-    except KeyError as e:
+def get_subscription(id: str, db: Session = Depends(get_db)):
+    sub = db.query(Subscription).filter(Subscription.id == id).first()
+    if sub is None:
         return HTTPException(status_code=404, detail="User Not Found")
+    return SubscriptionCreateDto.from_orm(sub)
 
 @app.put("/subscription")
-def update_subscription(subscriptiondto: SubscriptionCreateDto):
-    subscription = subscriptions[subscriptiondto.id]
-    subscription.name = subscriptiondto.name
-    subscriptions[subscriptiondto.id] = subscription
-    return subscription
+def update_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = Depends(get_db)):
+    sub = db.query(Subscription).filter(Subscription.id == subscriptiondto.id)
+    if sub is None:
+        return HTTPException(status_code=404, detail="User Not Found")
+    update_sub_entity_from_dto(subscriptiondto, sub)
+    db.commit()
+    return SubscriptionCreateDto.from_orm(sub)
 
 @app.delete("/subscription/{id}")
-def delete_sub(id: str):
-    subscriptions.pop(id)
+def delete_sub(id: str, db: Session = Depends(get_db)):
+    db.query(Subscription).filter(Subscription.id == id).delte()
+    db.commit()
     return "Subscription Deleted"
 
 @app.post("/ingestion")
@@ -118,8 +114,18 @@ def create_sub_entity_from_dto(sub_dto: SubscriptionCreateDto):
         sub_metadata = None,
         is_active = True,
         created_at = now,
+        updated_at = None,
         expires_at = now + text("INTERVAL 1 MONTH")
     )
+
+def update_sub_entity_from_dto(sub_dto: SubscriptionCreateDto, sub_existing: Subscription):
+    sub_existing.name = sub_dto.name
+    sub_existing.tier = sub_dto.tier
+    sub_existing.email = sub_dto.email
+    sub_existing.description = sub_dto.description
+    sub_existing.sub_metadata = None
+    sub_existing.updated_at = func.now()
+    return sub_existing
 
 
 

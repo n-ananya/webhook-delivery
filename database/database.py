@@ -21,3 +21,13 @@ try:
 
 except Exception as e:
     raise e
+
+
+# Dependency to get the database session
+def get_db():
+    print("Inside get_db()")
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
