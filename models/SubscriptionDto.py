@@ -3,7 +3,7 @@ from typing import Optional, Dict
 from dataclasses import field
 
 #PyDantic Model
-class SubscriptionCreateDto(BaseModel):
+class SubscriptionDto(BaseModel):
     id: Optional[str] = field(default=None)
     name: str
     tier: str

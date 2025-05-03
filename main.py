@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+#include router from subscription API and webhook API 
 app.include_router(sub_router)
 app.include_router(webhook_router)
 
@@ -31,7 +32,7 @@ def on_startup():
     print("Creating database tables if does not exists")
     Base.metadata.create_all(bind=engine)
 
-    ## start kafka consumer here
+    ## start kafka consumer Thread here
     consumer_thread = threading.Thread(target=consume_messages)
     consumer_thread.start()
 
