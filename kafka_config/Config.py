@@ -2,7 +2,7 @@ from kafka import KafkaProducer, KafkaConsumer
 import threading
 
 from WebhookDto import WebhookDto
-from models.SubscriptionDto import SubscriptionDto
+from models.SubscriptionCreateDto import SubscriptionCreateDto
 import requests
 from entities.InMemorySubscription import subscriptions
 import json
@@ -29,7 +29,7 @@ def consume_messages():
         except Exception as e:
             print('Exception Occurred while consuming message: ' + str(e))
 
-def post_to_webhook(sub: SubscriptionDto, target_url: str):
+def post_to_webhook(sub: SubscriptionCreateDto, target_url: str):
     try:
         requestBody = {"id": sub.id, "name": sub.name}
         requests.post(target_url, json=requestBody)

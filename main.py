@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException, Response, status
 
 from WebhookDto import WebhookDto
-from models.SubscriptionDto import SubscriptionDto
+from models.SubscriptionCreateDto import SubscriptionCreateDto
 from entities.Subscription import Subscription
 from sqlalchemy.orm import Session
-from database.database import SessionLocal
+from database.database import SessionLocal, Base, engine
 import uuid
 import logging
 from kafka_config.Config import producer
@@ -13,7 +13,7 @@ import asyncio
 
 
 logging.basicConfig(
-    level=logging.DEBUG,  # Use INFO or WARNING in production
+    level=logging.INFO,  # Use INFO or WARNING in production
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
@@ -32,7 +32,7 @@ def get_db():
 
 
 @app.post("/subscription")
-def create_subscription(subscriptiondto: SubscriptionDto, db: Session = Depends(get_db)):
+def create_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = Depends(get_db)):
     try:
         print("Request: " + str(subscriptiondto))
         db_subscription = Subscription(id=str(uuid.uuid4()),name = subscriptiondto.name)
@@ -51,7 +51,7 @@ def get_subscription(id: str):
         return HTTPException(status_code=404, detail="User Not Found")
 
 @app.put("/subscription")
-def update_subscription(subscriptiondto: SubscriptionDto):
+def update_subscription(subscriptiondto: SubscriptionCreateDto):
     subscription = subscriptions[subscriptiondto.id]
     subscription.name = subscriptiondto.name
     subscriptions[subscriptiondto.id] = subscription
@@ -83,6 +83,11 @@ def send_message(msg: str):
         logger.info("Kafka Message Produced: ", )
     except Exception as e:
         logger.info("Exception Occurred while producing: ", e)
+
+@app.on_event("startup")
+def on_startup():
+    print("Creating database tables if does not exists")
+    Base.metadata.create_all(bind=engine)
 
 
 
