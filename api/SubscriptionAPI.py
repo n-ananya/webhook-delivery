@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -9,13 +9,14 @@ from sqlalchemy.sql import func
 
 from database.database import get_db
 from entities.Subscription import Subscription
-from main import app
 from models.SubscriptionCreateDto import SubscriptionCreateDto
 
 logger = logging.getLogger(__name__)
 
+sub_router = APIRouter()
 
-@app.post("/subscription")
+
+@sub_router.post("/subscription")
 def create_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = Depends(get_db)):
     try:
         print("Request: " + str(subscriptiondto))
@@ -31,14 +32,14 @@ def create_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = De
         print(e)
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.get("/subscription/{id}")
+@sub_router.get("/subscription/{id}")
 def get_subscription(id: str, db: Session = Depends(get_db)):
     sub = db.query(Subscription).filter(Subscription.id == id).first()
     if sub is None:
         return HTTPException(status_code=404, detail="User Not Found")
     return SubscriptionCreateDto.from_orm(sub)
 
-@app.put("/subscription")
+@sub_router.put("/subscription")
 def update_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = Depends(get_db)):
     sub = db.query(Subscription).filter(Subscription.id == subscriptiondto.id)
     if sub is None:
@@ -47,7 +48,7 @@ def update_subscription(subscriptiondto: SubscriptionCreateDto, db: Session = De
     db.commit()
     return SubscriptionCreateDto.from_orm(sub)
 
-@app.delete("/subscription/{id}")
+@sub_router.delete("/subscription/{id}")
 def delete_sub(id: str, db: Session = Depends(get_db)):
     db.query(Subscription).filter(Subscription.id == id).delte()
     db.commit()

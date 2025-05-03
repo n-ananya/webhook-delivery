@@ -1,14 +1,13 @@
 import logging
 import threading
 
-from fastapi import FastAPI, Depends, HTTPException, Response, status
-from sqlalchemy import text, MetaData
+from fastapi import FastAPI
+from sqlalchemy import MetaData
 
-
-from WebhookDto import WebhookDto
+from api.SubscriptionAPI import sub_router
+from api.WebHookAPI import webhook_router
 from database.database import Base, engine
 from kafka_config.Consumer import consume_messages
-from kafka_config.Producer import send_async
 
 logging.basicConfig(
     level=logging.INFO,  # Use INFO or WARNING in production
@@ -19,15 +18,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-
-@app.post("/ingestion")
-def ingest_webhook(web_hook_dto: WebhookDto):
-    # produce web_hook_dto json to kafka_config
-    send_async(web_hook_dto.model_dump_json())
-    return Response(status_code = status.HTTP_202_ACCEPTED)
-
-
-
+app.include_router(sub_router)
+app.include_router(webhook_router)
 
 @app.on_event("startup")
 def on_startup():
