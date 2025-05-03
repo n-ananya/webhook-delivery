@@ -1,11 +1,9 @@
+import requests
 from kafka import KafkaProducer, KafkaConsumer
-import threading
 
 from WebhookDto import WebhookDto
-from models.SubscriptionCreateDto import SubscriptionCreateDto
-import requests
 from entities.InMemorySubscription import subscriptions
-import json
+from models.SubscriptionCreateDto import SubscriptionCreateDto
 
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
@@ -36,7 +34,4 @@ def post_to_webhook(sub: SubscriptionCreateDto, target_url: str):
         print('WebHook request sent for id:' + str(sub.id))
     except Exception as e:
         print('Exception Occurred while sending webhook request: ' + str(e))
-
-consumer_thread = threading.Thread(target=consume_messages)
-consumer_thread.start()
 

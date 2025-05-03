@@ -1,16 +1,20 @@
+import asyncio
+import logging
+import threading
+import uuid
+
 from fastapi import FastAPI, Depends, HTTPException, Response, status
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from WebhookDto import WebhookDto
-from models.SubscriptionCreateDto import SubscriptionCreateDto
-from entities.Subscription import Subscription
-from sqlalchemy.orm import Session
 from database.database import SessionLocal, Base, engine
-import uuid
-import logging
-from kafka_config.Config import producer
 from entities.InMemorySubscription import subscriptions
-import asyncio
-
+from entities.Subscription import Subscription
+from kafka_config.Config import producer
+from models.SubscriptionCreateDto import SubscriptionCreateDto
+from kafka_config.Config import consume_messages
 
 logging.basicConfig(
     level=logging.INFO,  # Use INFO or WARNING in production
@@ -86,8 +90,27 @@ def send_message(msg: str):
 
 @app.on_event("startup")
 def on_startup():
+    ## create tables
     print("Creating database tables if does not exists")
     Base.metadata.create_all(bind=engine)
+
+    ## start kafka consumer here
+    consumer_thread = threading.Thread(target=consume_messages)
+    consumer_thread.start()
+
+def create_sub_entity_from_dto(sub_dto: SubscriptionCreateDto):
+    now = func.now()
+    return Subscription(
+        id = str(uuid.uuid4()),
+        name = sub_dto.name,
+        tier = sub_dto.tier,
+        email = sub_dto.email,
+        description = sub_dto.description,
+        sub_metadata = sub_dto.metadata,
+        is_active = True,
+        created_at = now,
+        expires_at = now + text("INTERVAL 1 MMONTH")
+    )
 
 
 
