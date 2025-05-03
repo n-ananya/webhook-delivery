@@ -1,5 +1,5 @@
+import asyncio
 import logging
-import threading
 
 from fastapi import FastAPI
 from sqlalchemy import MetaData
@@ -7,7 +7,7 @@ from sqlalchemy import MetaData
 from api.SubscriptionAPI import sub_router
 from api.WebHookAPI import webhook_router
 from database.database import Base, engine
-from kafka_config.Consumer import consume_messages
+from kafka_config.Consumer import consume_async_await
 
 logging.basicConfig(
     level=logging.INFO,  # Use INFO or WARNING in production
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-#include router from subscription API and webhook API 
+#include router from subscription API and webhook API
 app.include_router(sub_router)
 app.include_router(webhook_router)
 
@@ -33,8 +33,7 @@ def on_startup():
     Base.metadata.create_all(bind=engine)
 
     ## start kafka consumer Thread here
-    consumer_thread = threading.Thread(target=consume_messages)
-    consumer_thread.start()
+    asyncio.create_task(consume_async_await())
 
 
 

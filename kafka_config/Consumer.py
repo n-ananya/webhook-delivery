@@ -5,7 +5,11 @@ from WebhookDto import WebhookDto
 from database.database import get_db
 from entities.Subscription import Subscription
 from kafka_config.Config import consumer
+import asyncio
 
+async def consume_async_await():
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, consume_messages)
 
 def consume_messages():
     for message in consumer:
