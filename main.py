@@ -1,10 +1,15 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Response, status
+
+from WebhookDto import WebhookDto
 from models.SubscriptionDto import SubscriptionDto
 from entities.Subscription import Subscription
 from sqlalchemy.orm import Session
 from database.database import SessionLocal
 import uuid
 import logging
+from kafka_config.Config import producer
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
 
 logging.basicConfig(
@@ -57,4 +62,24 @@ def update_subscription(subscriptiondto: SubscriptionDto):
 def delete_sub(id: str):
     subscriptions.pop(id)
     return "Subscription Deleted"
+
+@app.post("/ingestion")
+def ingest_webhook(web_hook_dto: WebhookDto):
+    # produce web_hook_dto json to kafka_config
+    send_async(web_hook_dto.model_dump_json())
+    return Response(status_code = status.HTTP_202_ACCEPTED)
+
+
+def send_async(payload: str):
+    asyncio.run(async_send_message(payload))
+
+async def async_send_message(payload: str):
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, send_message, payload)
+
+def send_message(msg: str):
+    producer.send('webhook_payload', str.encode('UTF-8'))
+    producer.flush()
+
+
 
