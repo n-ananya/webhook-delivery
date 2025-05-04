@@ -1,3 +1,9 @@
+# Webhook Delivery Service
+
+Webhook Delivery Service is a lightweight, event-driven backend system for managing subscriptions, ingesting payloads, delivering data asynchronously and retrying failed deliveries.
+
+
+
 # Set Up Instructions
 
 setup python virtual environment
@@ -12,8 +18,8 @@ install python module using pip
 pip install -r requirements.txt
 
 
-Run the command using:
-uvicron main: app
+Run the app using:
+uvicorn main:app --reload
 
 
 # Created CRUD APIs
@@ -64,11 +70,11 @@ curl --location 'http://127.0.0.1:8000/ingestion' \
  SQLAlchmey - ORM
 
 
- Database used : MySQL
+ **Database used :** MySQL
 
- Programming Language: Python
+ **Programming Language:** Python
 
- Queue - Kafka Messaging System
+ **Queue :** Kafka Messaging System
 
 
 # Architecture
