@@ -22,7 +22,7 @@ Run the app using:
 uvicorn main:app --reload
 
 
-# Created CRUD APIs
+# CRUD APIs
 
 
 CREATE SUBSCRIPTION API
