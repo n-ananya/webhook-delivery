@@ -1,4 +1,4 @@
-1.Set Up Instructions
+# Set Up Instructions
 
 setup python virtual environment
 python -m venv venv
@@ -16,7 +16,7 @@ Run the command using:
 uvicron main: app
 
 
-2.Created CRUD APIs
+# Created CRUD APIs
 
 
 CREATE SUBSCRIPTION API
@@ -45,7 +45,7 @@ curl --location --request DELETE 'http://127.0.0.1:8000/subscription/12096dc0-27
 --header 'Content-Type: application/json'
 
 
-3.Webhook ingestion API
+#Webhook ingestion API
 
 curl --location 'http://127.0.0.1:8000/ingestion' \
 --header 'Content-Type: application/json' \
@@ -58,20 +58,20 @@ curl --location 'http://127.0.0.1:8000/ingestion' \
 
 
 
-Framework used
+# Framework used
 
 FASTAPI
 SQLAlchmey - ORM
 
 
-Database used : MySQL
+# Database used : MySQL
 
-Programming Language: Python
+# Programming Language: Python
 
-Retry/Queue - Kafka Messaging System
+# Queue - Kafka Messaging System
 
 
-Architecture
+# Architecture
 
 1. CRUD API interacts with db layer to read/save/update/delete subscription data
 2. webhook ingestion api asynchronously adds webhook payload to kafka queue on topic "webhook_payload"
