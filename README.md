@@ -56,19 +56,19 @@ curl --location 'http://127.0.0.1:8000/ingestion' \
 
 
 
+ # Technologies Used 
+
+ **Framework used**
+
+ FASTAPI
+ SQLAlchmey - ORM
 
 
-# Framework used
+ Database used : MySQL
 
-FASTAPI
-SQLAlchmey - ORM
+ Programming Language: Python
 
-
-# Database used : MySQL
-
-# Programming Language: Python
-
-# Queue - Kafka Messaging System
+ Queue - Kafka Messaging System
 
 
 # Architecture
