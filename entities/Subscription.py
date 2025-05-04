@@ -21,7 +21,7 @@ class Subscription(Base):
     updated_at = Column(DateTime)
     expires_at = Column(DateTime)
 
-    def to_json(self) -> Dict[str,str]:
+    def to_dict(self) -> Dict[str,str]:
         return {
             'id': self.id,
             'name': self.name,

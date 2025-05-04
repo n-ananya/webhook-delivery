@@ -8,5 +8,5 @@ webhook_router = APIRouter()
 @webhook_router.post("/ingestion")
 def ingest_webhook(web_hook_dto: WebhookDto):
     # produce web_hook_dto json to kafka_config
-    send_async(web_hook_dto.model_dump_json())
+    send_async(web_hook_dto.model_dump_json(), 'webhook_payload')
     return Response(status_code = status.HTTP_202_ACCEPTED)
