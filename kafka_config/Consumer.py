@@ -34,7 +34,7 @@ def consume_messages_webhook():
             sub_dict = sub.to_dict()
             post_to_webhook(sub_dict, webhook_dto.target_url)
         except Exception as e:
-            print('Exception Occurred while consuming message: ' + str(e))
+            print('Exception Occurred while retrying webhook message: ' + str(e))
             if sub_dict is not None:
                 send_to_retry_topic(sub_dict, webhook_dto.target_url, 1)
 
@@ -55,6 +55,8 @@ def consume_messages_retry():
                     post_to_webhook(sub_dict, target_url)
                 except Exception as e_inner:
                     print("Exception Occurred while retrying post webhook: " + str(e_inner))
+                    if sub_dict is not None and retry_count < 5:
+                        send_to_retry_topic(sub_dict, target_url, retry_count + 1)
         except Exception as e:
             print('Exception Occurred while retrying message: ' + str(e))
 
